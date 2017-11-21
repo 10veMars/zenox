@@ -1,0 +1,140 @@
+# More documentation about how to customize your build
+# can be found here:
+# https://docs.fastlane.tools
+# fastlane_version "1.109.0"
+
+# This value helps us track success metrics for Fastfiles
+# we automatically generate. Feel free to remove this line
+# once you get things running smoothly!
+# generated_fastfile_id "7c5a9e5a-8601-4248-a45e-16baedf280fc"
+
+default_platform :ios
+
+lane :shake do |options|
+
+  if options[:username]
+    fl_username = options[:username]
+  else
+    puts '请传入username'
+    puts '使用命令: fastlane shake username:"*****@*****.com"'
+    next
+  end
+
+  cmds = [
+    "git pull"
+  ]
+  cmds.each { |cmd|
+    value = %x`#{cmd}`
+    if value.length>0
+      puts value
+    end
+  }
+
+  # fl_username = "wanghaojie2@outlook.com"
+
+  fl_git_url = "https://gitlab.kosun.net/iOS-Team/Certificates.git"
+
+  at_index = fl_username.index('@')
+  period_index = fl_username.index('.com')
+  prefix_username = fl_username[0..at_index-1]
+  suffix_username = fl_username[at_index+1..period_index-1]
+
+  fl_app_identifier = 'com.'+suffix_username+'.'+prefix_username
+  if options[:identifier]
+    fl_app_identifier = options[:identifier]
+  end
+
+  fl_app_name = prefix_username
+  if options[:appname]
+    fl_app_name = options[:appname]
+  end
+
+  fl_language = "English"
+  if options[:language]
+    fl_language = options[:language]
+  end
+
+  certs_path = File.join(Dir.pwd, '..', 'certs')
+  if File.exist?(certs_path)
+    puts certs_path
+  else
+    Dir.mkdir(certs_path)
+  end
+
+  output_path = File.join(certs_path, fl_app_identifier)
+  if File.exist?(output_path)
+    puts output_path
+  else
+    Dir.mkdir(output_path)
+  end
+
+  fl_development_output_path = File.join(output_path, 'development')
+  if File.exist?(fl_development_output_path)
+    puts fl_development_output_path
+  else
+    Dir.mkdir(fl_development_output_path)
+  end
+
+  fl_distribution_output_path = File.join(output_path, 'distribution')
+  if File.exist?(fl_distribution_output_path)
+    puts fl_distribution_output_path
+  else
+    Dir.mkdir(fl_distribution_output_path)
+  end
+
+
+  produce(
+    username: fl_username,
+    app_identifier: fl_app_identifier,
+    app_name: fl_app_name,
+    app_version: "1.0.0",
+    language: fl_language
+  )
+  pem(
+    output_path: fl_distribution_output_path,
+    p12_password: "111111",
+    username: fl_username,
+    app_identifier: fl_app_identifier
+  )
+  pem(
+    output_path: fl_development_output_path,
+    p12_password: "111111",
+    username: fl_username,
+    app_identifier: fl_app_identifier,
+    development: true
+  )
+  register_devices(
+    devices: {"6s" => "655075e7bea6a2c0298f220f9fa5879faaa67139"},
+    username: fl_username,
+  )
+  match(
+    git_url: fl_git_url,
+    type: "development",
+    git_branch: fl_username,
+    app_identifier: fl_app_identifier,
+    username: fl_username,
+    force_for_new_devices: true,
+    platform: "ios",
+  )
+  match(
+    git_url: fl_git_url,
+    type: "appstore",
+    git_branch: fl_username,
+    app_identifier: fl_app_identifier,
+    username: fl_username,
+    platform: "ios",
+  )
+
+  cmds = [
+    "git checkout -- Fastfile",
+    'git commit -a -m "edit'+fl_app_identifier+'"',
+    "git push -u origin develop",
+  ]
+  cmds.each { |cmd|
+    value = %x`#{cmd}`
+    if value.length>0
+      puts value
+    end
+  }
+
+end

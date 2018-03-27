@@ -32,7 +32,7 @@ lane :shake do |options|
 
   # fl_username = "wanghaojie2@outlook.com"
 
-  fl_git_url = "https://github.com/10veMars/yunding.git"
+  fl_git_url = "https://gitlab.kosun.net/iOS-Team/Certificates.git"
 
   at_index = fl_username.index('@')
   period_index = fl_username.index('.com')

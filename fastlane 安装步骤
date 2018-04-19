@@ -1,0 +1,335 @@
+## 安装
+
+```
+# 安装 Homebrew
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# 安装ruby
+brew install ruby
+
+# 安装fastlane
+gem install fastlane
+```
+
+## produce
+
+Creates the given application on iTC and the Dev Portal if necessary
+
+| produce             |           |
+| ------------------- | --------- |
+| Supported platforms | ios       |
+| Author              | @KrauseFx |
+
+**1 Example**
+
+```
+produce(
+  username: "felix@krausefx.com",
+  app_identifier: "com.krausefx.app",
+  app_name: "MyApp",
+  language: "English",
+  app_version: "1.0",
+  sku: "123",
+  team_name: "SunApps GmbH" # Only necessary when in multiple teams.
+)
+
+```
+
+**Parameters**
+
+| Key                        | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `username`                 | Your Apple ID Username                   |
+| `app_identifier`           | App Identifier (Bundle ID, e.g. com.krausefx.app) |
+| `bundle_identifier_suffix` | App Identifier Suffix (Ignored if App Identifier does not end with .*) |
+| `app_name`                 | App Name                                 |
+| `app_version`              | Initial version number (e.g. '1.0')      |
+| `sku`                      | SKU Number (e.g. '1234')                 |
+| `platform`                 | The platform to use (optional)           |
+| `language`                 | Primary Language (e.g. 'English', 'German') |
+| `company_name`             | The name of your company. Only required if it's the first app you create |
+| `skip_itc`                 | Skip the creation of the app on iTunes Connect |
+| `itc_users`                | Array of iTunes Connect users. If provided, you can limit access to this newly created app for users with the App Manager, Developer, Marketer or Sales roles |
+| `enabled_features`         | [DEPRECATED!] Please use `enable_services` instead - Array with Spaceship App Services |
+| `enable_services`          | Array with Spaceship App Services (e.g. app_group: (on |
+| `skip_devcenter`           | Skip the creation of the app on the Apple Developer Portal |
+| `team_id`                  | The ID of your Developer Portal team if you're in multiple teams |
+| `team_name`                | The name of your Developer Portal team if you're in multiple teams |
+| `itc_team_id`              | The ID of your iTunes Connect team if you're in multiple teams |
+| `itc_team_name`            | The name of your iTunes Connect team if you're in multiple teams |
+
+------
+
+To show the documentation in your terminal, run
+
+```
+fastlane action produce
+
+```
+
+[View source code](https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/produce.rb)
+
+## pem
+
+Makes sure a valid push profile is active and creates a new one if needed
+
+> Additionally to the available options, you can also specify a block that only gets executed if a new profile was created. You can use it to upload the new profile to your server. Use it like this: pem( new_profile: proc do # your upload code end )
+
+| pem                 |           |
+| ------------------- | --------- |
+| Supported platforms | ios       |
+| Author              | @KrauseFx |
+
+**2 Examples**
+
+```
+pem
+
+```
+
+```
+pem(
+  force: true, # create a new profile, even if the old one is still valid
+  app_identifier: "net.sunapps.9", # optional app identifier,
+  save_private_key: true,
+  new_profile: proc do |profile_path| # this block gets called when a new profile was generated
+    puts profile_path # the absolute path to the new PEM file
+    # insert the code to upload the PEM file to the server
+  end
+)
+
+```
+
+**Parameters**
+
+| Key                 | Description                              |
+| ------------------- | ---------------------------------------- |
+| `development`       | Renew the development push certificate instead of the production one |
+| `generate_p12`      | Generate a p12 file additionally to a PEM file |
+| `active_days_limit` | If the current certificate is active for less than this number of days, generate a new one. Default value is 30 days |
+| `force`             | Create a new push certificate, even if the current one is active for 30 (or PEM_ACTIVE_DAYS_LIMIT) more days |
+| `save_private_key`  | Set to save the private RSA key          |
+| `app_identifier`    | The bundle identifier of your app        |
+| `username`          | Your Apple ID Username                   |
+| `team_id`           | The ID of your Developer Portal team if you're in multiple teams |
+| `team_name`         | The name of your Developer Portal team if you're in multiple teams |
+| `p12_password`      | The password that is used for your p12 file |
+| `pem_name`          | The file name of the generated .pem file |
+| `output_path`       | The path to a directory in which all certificates and private keys should be stored |
+| `new_profile`       | Block that is called if there is a new profile |
+
+------
+
+To show the documentation in your terminal, run
+
+```
+fastlane action pem
+
+```
+
+[View source code](https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/pem.rb)
+
+## register_devices
+
+Registers new devices to the Apple Dev Portal
+
+> This will register iOS devices with the Developer Portal so that you can include them in your provisioning profiles. This is an optimistic action, in that it will only ever add new devices to the member center, and never remove devices. If a device which has already been registered within the member center is not passed to this action, it will be left alone in the member center and continue to work. The action will connect to the Apple Developer Portal using the username you specified in your `Appfile` with `apple_id`, but you can override it using the `username` option, or by setting the env variable `ENV['DELIVER_USER']`.
+
+| register_devices    |             |
+| ------------------- | ----------- |
+| Supported platforms | ios         |
+| Author              | @lmirosevic |
+
+**3 Examples**
+
+```
+register_devices(
+  devices: {
+    "Luka iPhone 6" => "1234567890123456789012345678901234567890",
+    "Felix iPad Air 2" => "abcdefghijklmnopqrstvuwxyzabcdefghijklmn"
+  }
+) # Simply provide a list of devices as a Hash
+
+```
+
+```
+register_devices(
+  devices_file: "./devices.txt"
+) # Alternatively provide a standard UDID export .txt file, see the Apple Sample (https://devimages.apple.com.edgekey.net/downloads/devices/Multiple-Upload-Samples.zip)
+
+```
+
+```
+register_devices(
+  devices_file: "./devices.txt", # You must pass in either `devices_file` or `devices`.
+  team_id: "XXXXXXXXXX",         # Optional, if you"re a member of multiple teams, then you need to pass the team ID here.
+  username: "luka@goonbee.com"   # Optional, lets you override the Apple Member Center username.
+)
+
+```
+
+**Parameters**
+
+| Key            | Description                              |
+| -------------- | ---------------------------------------- |
+| `devices`      | A hash of devices, with the name as key and the UDID as value |
+| `devices_file` | Provide a path to a file with the devices to register. For the format of the file see the examples |
+| `team_id`      | The ID of your Developer Portal team if you're in multiple teams |
+| `team_name`    | The name of your Developer Portal team if you're in multiple teams |
+| `username`     | Optional: Your Apple ID                  |
+
+------
+
+To show the documentation in your terminal, run
+
+```
+fastlane action register_devices
+
+```
+
+[View source code](https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/register_devices.rb)
+
+## match
+
+Easily sync your certificates and profiles across your team using git
+
+> More details https://github.com/fastlane/fastlane/tree/master/match
+
+| match               |           |
+| ------------------- | --------- |
+| Supported platforms | ios       |
+| Author              | @KrauseFx |
+
+**3 Examples**
+
+```
+match(type: "appstore", app_identifier: "tools.fastlane.app")
+
+```
+
+```
+match(type: "development", readonly: true)
+
+```
+
+```
+match(app_identifier: ["tools.fastlane.app", "tools.fastlane.sleepy"])
+
+```
+
+**Parameters**
+
+| Key                     | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `git_url`               | URL to the git repo containing all the certificates |
+| `git_branch`            | Specific git branch to use               |
+| `type`                  | Define the profile type, can be appstore, adhoc, development, enterprise |
+| `app_identifier`        | The bundle identifier(s) of your app (comma-separated) |
+| `username`              | Your Apple ID Username                   |
+| `keychain_name`         | Keychain the items should be imported to |
+| `keychain_password`     | This might be required the first time you access certificates on a new mac. For the login/default keychain this is your account password |
+| `readonly`              | Only fetch existing certificates and profiles, don't generate new ones |
+| `team_id`               | The ID of your Developer Portal team if you're in multiple teams |
+| `git_full_name`         | git user full name to commit             |
+| `git_user_email`        | git user email to commit                 |
+| `team_name`             | The name of your Developer Portal team if you're in multiple teams |
+| `verbose`               | Print out extra information and all commands |
+| `force`                 | Renew the provisioning profiles every time you run match |
+| `skip_confirmation`     | Disables confirmation prompts during nuke, answering them with yes |
+| `shallow_clone`         | Make a shallow clone of the repository (truncate the history to 1 revision) |
+| `clone_branch_directly` | Clone just the branch specified, instead of the whole repo. This requires that the branch already exists. Otherwise the command will fail |
+| `force_for_new_devices` | Renew the provisioning profiles if the device count on the developer portal has changed |
+| `skip_docs`             | Skip generation of a README.md for the created git repository |
+| `platform`              | Set the provisioning profile's platform to work with (i.e. ios, tvos) |
+| `template_name`         | The name of provisioning profile template. If the developer account has provisioning profile templates, template name can be found by inspecting the Entitlements drop-down while creating/editing a provisioning profile |
+
+------
+
+To show the documentation in your terminal, run
+
+```
+fastlane action match
+
+```
+
+[View source code](https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/match.rb)
+
+## gym
+
+| gym                 |                                          |
+| ------------------- | ---------------------------------------- |
+| Supported platforms | ios, mac                                 |
+| Author              | @KrauseFx                                |
+| Returns             | The absolute path to the generated ipa file |
+
+**2 Examples**
+
+```
+gym(scheme: "MyApp", workspace: "MyApp.xcworkspace")
+
+```
+
+```
+gym(
+  workspace: "MyApp.xcworkspace",
+  configuration: "Debug",
+  scheme: "MyApp",
+  silent: true,
+  clean: true,
+  output_directory: "path/to/dir", # Destination directory. Defaults to current directory.
+  output_name: "my-app.ipa",       # specify the name of the .ipa file to generate (including file extension)
+  sdk: "10.0"  # use SDK as the name or path of the base SDK when building the project.
+)
+```
+
+**Parameters**
+
+| Key                     | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `workspace`             | Path to the workspace file               |
+| `project`               | Path to the project file                 |
+| `scheme`                | The project's scheme. Make sure it's marked as `Shared` |
+| `clean`                 | Should the project be cleaned before building it? |
+| `output_directory`      | The directory in which the ipa file should be stored in |
+| `output_name`           | The name of the resulting ipa file       |
+| `configuration`         | The configuration to use when building the app. Defaults to 'Release' |
+| `silent`                | Hide all information that's not necessary while building |
+| `codesigning_identity`  | The name of the code signing identity to use. It has to match the name exactly. e.g. 'iPhone Distribution: SunApps GmbH' |
+| `skip_package_ipa`      | Should we skip packaging the ipa?        |
+| `include_symbols`       | Should the ipa file include symbols?     |
+| `include_bitcode`       | Should the ipa file include bitcode?     |
+| `export_method`         | Method used to export the archive. Valid values are: app-store, ad-hoc, package, enterprise, development, developer-id |
+| `export_options`        | Specifies path to export options plist. Use 'xcodebuild -help' to print the full set of available options |
+| `export_xcargs`         | Pass additional arguments to xcodebuild for the package phase. Be sure to quote the setting names and values e.g. OTHER_LDFLAGS="-ObjC -lstdc++" |
+| `skip_build_archive`    | Export ipa from previously built xarchive. Uses archive_path as source |
+| `build_path`            | The directory in which the archive should be stored in |
+| `archive_path`          | The path to the created archive          |
+| `derived_data_path`     | The directory where built products and other derived data will go |
+| `result_bundle`         | Location of the Xcode result bundle      |
+| `buildlog_path`         | The directory where to store the build log |
+| `sdk`                   | The SDK that should be used for building the application |
+| `toolchain`             | The toolchain that should be used for building the application (e.g. com.apple.dt.toolchain.Swift_2_3, org.swift.30p620160816a) |
+| `destination`           | Use a custom destination for building the app |
+| `export_team_id`        | Optional: Sometimes you need to specify a team id when exporting the ipa file |
+| `xcargs`                | Pass additional arguments to xcodebuild for the build phase. Be sure to quote the setting names and values e.g. OTHER_LDFLAGS="-ObjC -lstdc++" |
+| `xcconfig`              | Use an extra XCCONFIG file to build your app |
+| `suppress_xcode_output` | Suppress the output of xcodebuild to stdout. Output is still saved in buildlog_path |
+| `disable_xcpretty`      | Disable xcpretty formatting of build output |
+| `xcpretty_test_format`  | Use the test (RSpec style) format for build output |
+| `xcpretty_formatter`    | A custom xcpretty formatter to use       |
+| `xcpretty_report_junit` | Have xcpretty create a JUnit-style XML report at the provided path |
+| `xcpretty_report_html`  | Have xcpretty create a simple HTML report at the provided path |
+| `xcpretty_report_json`  | Have xcpretty create a JSON compilation database at the provided path |
+| `analyze_build_time`    | Analyze the project build time and store the output in 'culprits.txt' file |
+| `xcpretty_utf`          | Have xcpretty use unicode encoding when reporting builds |
+
+------
+
+To show the documentation in your terminal, run
+
+```
+fastlane action gym
+
+```
+
+[View source code](https://github.com/fastlane/fastlane/blob/master/fastlane/lib/fastlane/actions/gym.rb)
